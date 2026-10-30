@@ -29,35 +29,43 @@ SemiCrest Technologies' internet-facing design portal (`sc-portal01`) was compro
 
 - [🧠 Hunt Overview](#-hunt-overview)
 - [🧬 MITRE ATT&CK Summary](#-mitre-attck-summary)
-- [🔍 Flag Analysis](#-flag-analysis)
-  - [🚩 Flag 1: Vulnerable Endpoint](#-flag-1)
-  - [🚩 Flag 2: The Self-Correct](#-flag-2)
-  - [🚩 Flag 3: Exploit Source](#-flag-3)
-  - [🚩 Flag 4: Exploitation Chain](#-flag-4)
-  - [🚩 Flag 5: Configuration File and Process Tree](#-flag-5)
-  - [🚩 Flag 6: Database Credential](#-flag-6)
-  - [🚩 Flag 7: Registry Credential](#-flag-7)
-  - [🚩 Flag 8: Visibility Gap](#-flag-8)
-  - [🚩 Flag 9: Database Query Discrimination](#-flag-9)
-  - [🚩 Flag 10: Queried Tables](#-flag-10)
-  - [🚩 Flag 11: Registry Enumeration](#-flag-11)
-  - [🚩 Flag 12: Admin API Response](#-flag-12)
-  - [🚩 Flag 13: Secrets Store Hallucination](#-flag-13)
-  - [🚩 Flag 14: Registry Credential Hallucination](#-flag-14)
-  - [🚩 Flag 15: Hallucination as Autonomy Limitation](#-flag-15)
-  - [🚩 Flag 16: Exfil Destination and Staging Path](#-flag-16)
-  - [🚩 Flag 17: Staging Tools](#-flag-17)
-  - [🚩 Flag 18: Persistence Mechanism](#-flag-18)
-  - [🚩 Flag 19: Exfil vs Legitimate HTTPS](#-flag-19)
-  - [🚩 Flag 20: Scanner IPs](#-flag-20)
-  - [🚩 Flag 21: Recon vs Nessus Discrimination](#-flag-21)
-  - [🚩 Flag 22: Timing Signature](#-flag-22)
-  - [🚩 Flag 23: Operator Decision Gates](#-flag-23)
-  - [🚩 Flag 24: Autonomy Placement](#-flag-24)
-  - [🚩 Flag 25: Novel ATT&CK Technique](#-flag-25)
-  - [🚩 Flag 26: Credential Reuse Across Services (Real or Noise)](#-flag-26)
-  - [🚩 Flag 27: pg_dump Disconfirmation](#-flag-27)
-  - [🚩 Flag 28: Connection Spike Dead End](#-flag-28)
+- [🔍 Question Analysis](#-question-analysis)
+  - **Section 1: Initial Access**
+    - [🚩 Q1: Vulnerable Endpoint](#-section-1-q1)
+    - [🚩 Q2: The Self-Correct](#-section-1-q2)
+    - [🚩 Q3: Exploit Source](#-section-1-q3)
+    - [🚩 Q4: Exploitation Chain](#-section-1-q4)
+  - **Section 2: Credential Harvest**
+    - [🚩 Q1: Configuration File and Process Tree](#-section-2-q1)
+    - [🚩 Q2: Database Credential](#-section-2-q2)
+    - [🚩 Q3: Registry Credential](#-section-2-q3)
+    - [🚩 Q4: Visibility Gap](#-section-2-q4)
+  - **Section 3: Lateral Movement**
+    - [🚩 Q1: Database Query Discrimination](#-section-3-q1)
+    - [🚩 Q2: Queried Tables](#-section-3-q2)
+    - [🚩 Q3: Registry Enumeration](#-section-3-q3)
+    - [🚩 Q4: Admin API Response](#-section-3-q4)
+  - **Section 4: AI Hallucination**
+    - [🚩 Q1: Secrets Store Hallucination](#-section-4-q1)
+    - [🚩 Q2: Registry Credential Hallucination](#-section-4-q2)
+    - [🚩 Q3: Hallucination as Autonomy Limitation](#-section-4-q3)
+  - **Section 5: Exfiltration and Persistence**
+    - [🚩 Q1: Exfil Destination and Staging Path](#-section-5-q1)
+    - [🚩 Q2: Staging Tools](#-section-5-q2)
+    - [🚩 Q3: Persistence Mechanism](#-section-5-q3)
+    - [🚩 Q4: Exfil vs Legitimate HTTPS](#-section-5-q4)
+  - **Section 6: Reconnaissance and Timing**
+    - [🚩 Q1: Scanner IPs](#-section-6-q1)
+    - [🚩 Q2: Recon vs Nessus Discrimination](#-section-6-q2)
+    - [🚩 Q3: Timing Signature](#-section-6-q3)
+  - **Section 7: Autonomy**
+    - [🚩 Q1: Operator Decision Gates](#-section-7-q1)
+    - [🚩 Q2: Autonomy Placement](#-section-7-q2)
+    - [🚩 Q3: Novel ATT&CK Technique](#-section-7-q3)
+  - **Section 8: Real or Noise**
+    - [🚩 Q1: Credential Reuse Across Services (Real or Noise)](#-section-8-q1)
+    - [🚩 Q2: pg_dump Disconfirmation](#-section-8-q2)
+    - [🚩 Q3: Connection Spike Dead End](#-section-8-q3)
 - [🚨 Detection Gaps & Recommendations](#-detection-gaps--recommendations)
 - [🧾 Final Assessment](#-final-assessment)
 - [📎 Analyst Notes](#-analyst-notes)
@@ -95,47 +103,51 @@ Operation QUARTZFANG reproduces **Anthropic's Campaign C0062**, the first docume
 
 ## 🧬 MITRE ATT&CK Summary
 
-| Flag | Technique Category | MITRE ID | Priority |
-|-----:|-------------------|----------|----------|
-| 1 | Exploit Public-Facing Application | T1190 | High |
-| 2 | Exploit Public-Facing Application (SSRF filter bypass) | T1190 | High |
-| 3 | Exploit Public-Facing Application / Command and Control | T1190 | High |
-| 4 | Scheduled Task/Job: Cron / Python Interpreter | T1053.003, T1059.006 | Critical |
-| 5 | Unsecured Credentials: Credentials in Files | T1552.001 | Critical |
-| 6 | Unsecured Credentials: Credentials in Files | T1552.001 | Critical |
-| 7 | Unsecured Credentials: Credentials in Files | T1552.001 | Critical |
-| 8 | Unsecured Credentials | T1552 | Medium |
-| 9 | Data from Information Repositories: Databases | T1213.006 | High |
-| 10 | Data from Information Repositories: Databases | T1213.006 | High |
-| 11 | Container and Resource Discovery | T1613 | High |
-| 12 | System Information Discovery | T1082 | Medium |
-| 13 | Obtain Capabilities: Artificial Intelligence | T1588.007 | Medium |
-| 14 | Obtain Capabilities: Artificial Intelligence | T1588.007 | Medium |
-| 15 | Obtain Capabilities: Artificial Intelligence | T1588.007 | Info |
-| 16 | Exfiltration Over Web Service | T1567 | Critical |
-| 17 | Archive Collected Data: Archive via Utility | T1560.001 | High |
-| 18 | Create Account: Local Account | T1136.001 | Critical |
-| 19 | Exfiltration Over Web Service / Application Layer Protocol | T1567, T1071.001 | High |
-| 20 | Active Scanning: Scanning IP Blocks | T1595.001 | Medium |
-| 21 | Active Scanning | T1595.001 | Low |
-| 22 | Obtain Capabilities: Artificial Intelligence | T1588.007 | Info |
-| 23 | Obtain Capabilities: Artificial Intelligence | T1588.007 | Info |
-| 24 | Obtain Capabilities: Artificial Intelligence | T1588.007 | Info |
-| 25 | Resource Development: Obtain Capabilities | T1588.007 | High |
-| 26 | Valid Accounts | T1078 | High |
-| 27 | N/A (benign) | N/A | Low |
-| 28 | N/A (benign) | N/A | Low |
+| Section | Question | Technique Category | MITRE ID | Priority |
+|---------|---------:|-------------------|----------|----------|
+| 1: Initial Access | Q1 | Exploit Public-Facing Application | T1190 | High |
+| 1: Initial Access | Q2 | Exploit Public-Facing Application (SSRF filter bypass) | T1190 | High |
+| 1: Initial Access | Q3 | Exploit Public-Facing Application / Command and Control | T1190 | High |
+| 1: Initial Access | Q4 | Scheduled Task/Job: Cron / Python Interpreter | T1053.003, T1059.006 | Critical |
+| 2: Credential Harvest | Q1 | Unsecured Credentials: Credentials in Files | T1552.001 | Critical |
+| 2: Credential Harvest | Q2 | Unsecured Credentials: Credentials in Files | T1552.001 | Critical |
+| 2: Credential Harvest | Q3 | Unsecured Credentials: Credentials in Files | T1552.001 | Critical |
+| 2: Credential Harvest | Q4 | Unsecured Credentials | T1552 | Medium |
+| 3: Lateral Movement | Q1 | Data from Information Repositories: Databases | T1213.006 | High |
+| 3: Lateral Movement | Q2 | Data from Information Repositories: Databases | T1213.006 | High |
+| 3: Lateral Movement | Q3 | Container and Resource Discovery | T1613 | High |
+| 3: Lateral Movement | Q4 | System Information Discovery | T1082 | Medium |
+| 4: AI Hallucination | Q1 | Obtain Capabilities: Artificial Intelligence | T1588.007 | Medium |
+| 4: AI Hallucination | Q2 | Obtain Capabilities: Artificial Intelligence | T1588.007 | Medium |
+| 4: AI Hallucination | Q3 | Obtain Capabilities: Artificial Intelligence | T1588.007 | Info |
+| 5: Exfiltration and Persistence | Q1 | Exfiltration Over Web Service | T1567 | Critical |
+| 5: Exfiltration and Persistence | Q2 | Archive Collected Data: Archive via Utility | T1560.001 | High |
+| 5: Exfiltration and Persistence | Q3 | Create Account: Local Account | T1136.001 | Critical |
+| 5: Exfiltration and Persistence | Q4 | Exfiltration Over Web Service / Application Layer Protocol | T1567, T1071.001 | High |
+| 6: Reconnaissance and Timing | Q1 | Active Scanning: Scanning IP Blocks | T1595.001 | Medium |
+| 6: Reconnaissance and Timing | Q2 | Active Scanning | T1595.001 | Low |
+| 6: Reconnaissance and Timing | Q3 | Obtain Capabilities: Artificial Intelligence | T1588.007 | Info |
+| 7: Autonomy | Q1 | Obtain Capabilities: Artificial Intelligence | T1588.007 | Info |
+| 7: Autonomy | Q2 | Obtain Capabilities: Artificial Intelligence | T1588.007 | Info |
+| 7: Autonomy | Q3 | Resource Development: Obtain Capabilities | T1588.007 | High |
+| 8: Real or Noise | Q1 | Valid Accounts | T1078 | High |
+| 8: Real or Noise | Q2 | N/A (benign) | N/A | Low |
+| 8: Real or Noise | Q3 | N/A (benign) | N/A | Low |
 
 ---
 
-## 🔍 Flag Analysis
+## 🔍 Question Analysis
 
-_All flags below are collapsible for readability._
+_All questions below are collapsible for readability._
+
+---
+
+### 📂 Section 1: Initial Access
 
 ---
 
 <details>
-<summary id="-flag-1">🚩 <strong>Flag 1: Vulnerable Endpoint</strong></summary>
+<summary id="-section-1-q1">🚩 <strong>Q1: Vulnerable Endpoint</strong></summary>
 
 ### 🎯 Objective
 Find a server-side input on the internet-facing design portal that can be abused to reach internal resources.
@@ -184,7 +196,7 @@ Alert on any `url=`, `src=` or `fetch=` style parameter whose value starts with 
 ---
 
 <details>
-<summary id="-flag-2">🚩 <strong>Flag 2: The Self-Correct</strong></summary>
+<summary id="-section-1-q2">🚩 <strong>Q2: The Self-Correct</strong></summary>
 
 ### 🎯 Objective
 Get past the application's URL scheme filter.
@@ -229,7 +241,7 @@ Correlate a 4xx followed by a 2xx from the same source to the same endpoint with
 ---
 
 <details>
-<summary id="-flag-3">🚩 <strong>Flag 3: Exploit Source</strong></summary>
+<summary id="-section-1-q3">🚩 <strong>Q3: Exploit Source</strong></summary>
 
 ### 🎯 Objective
 Deliver the exploit from attacker-controlled infrastructure.
@@ -273,7 +285,7 @@ Join inbound web-log source IPs against outbound connection destinations from th
 ---
 
 <details>
-<summary id="-flag-4">🚩 <strong>Flag 4: Exploitation Chain</strong></summary>
+<summary id="-section-1-q4">🚩 <strong>Q4: Exploitation Chain</strong></summary>
 
 ### 🎯 Objective
 Turn the SSRF into code execution on the portal host.
@@ -320,8 +332,12 @@ Alert on `cron` spawning `python*`, `bash` or `sh` with `socket`, `/dev/tcp` or 
 
 ---
 
+### 📂 Section 2: Credential Harvest
+
+---
+
 <details>
-<summary id="-flag-5">🚩 <strong>Flag 5: Configuration File and Process Tree</strong></summary>
+<summary id="-section-2-q1">🚩 <strong>Q1: Configuration File and Process Tree</strong></summary>
 
 ### 🎯 Objective
 Harvest service credentials from the compromised host.
@@ -369,7 +385,7 @@ Build a lineage rule: any file-reading binary (`cat`, `grep`, `find`, `head`) wh
 ---
 
 <details>
-<summary id="-flag-6">🚩 <strong>Flag 6: Database Credential</strong></summary>
+<summary id="-section-2-q2">🚩 <strong>Q2: Database Credential</strong></summary>
 
 ### 🎯 Objective
 Get credentials for the backing PostgreSQL database.
@@ -413,7 +429,7 @@ The data dictionary lists `tool_args`, but it doesn't exist. Check `getschema` f
 ---
 
 <details>
-<summary id="-flag-7">🚩 <strong>Flag 7: Registry Credential</strong></summary>
+<summary id="-section-2-q3">🚩 <strong>Q3: Registry Credential</strong></summary>
 
 ### 🎯 Objective
 Get credentials for a second internal service to widen access.
@@ -456,7 +472,7 @@ Logins by `ci-builder` are normal from the CI runner. Baseline each service acco
 ---
 
 <details>
-<summary id="-flag-8">🚩 <strong>Flag 8: Visibility Gap</strong></summary>
+<summary id="-section-2-q4">🚩 <strong>Q4: Visibility Gap</strong></summary>
 
 ### 🎯 Objective
 Look for secrets held in environment variables.
@@ -499,8 +515,12 @@ Name visibility gaps explicitly in reports instead of guessing. To close this on
 
 ---
 
+### 📂 Section 3: Lateral Movement
+
+---
+
 <details>
-<summary id="-flag-9">🚩 <strong>Flag 9: Database Query Discrimination</strong></summary>
+<summary id="-section-3-q1">🚩 <strong>Q1: Database Query Discrimination</strong></summary>
 
 ### 🎯 Objective
 Collect data under the application's own account without standing out.
@@ -547,7 +567,7 @@ Flag `portal_svc` statements that contain no bind parameters, or that reference 
 ---
 
 <details>
-<summary id="-flag-10">🚩 <strong>Flag 10: Queried Tables</strong></summary>
+<summary id="-section-3-q2">🚩 <strong>Q2: Queried Tables</strong></summary>
 
 ### 🎯 Objective
 Enumerate the schema and collect credential and PII data.
@@ -593,7 +613,7 @@ Enable `pgaudit` with `read` logging on sensitive tables, and alert on any non-s
 ---
 
 <details>
-<summary id="-flag-11">🚩 <strong>Flag 11: Registry Enumeration</strong></summary>
+<summary id="-section-3-q3">🚩 <strong>Q3: Registry Enumeration</strong></summary>
 
 ### 🎯 Objective
 Find images that might contain embedded secrets.
@@ -640,7 +660,7 @@ Alert on `inspect_layer` or `list_repository` by CI service accounts, or on any 
 ---
 
 <details>
-<summary id="-flag-12">🚩 <strong>Flag 12: Admin API Response</strong></summary>
+<summary id="-section-3-q4">🚩 <strong>Q4: Admin API Response</strong></summary>
 
 ### 🎯 Objective
 Reach the admin platform's secrets store.
@@ -686,8 +706,12 @@ Alert on any admin API request from a service account or from a non-admin subnet
 
 ---
 
+### 📂 Section 4: AI Hallucination
+
+---
+
 <details>
-<summary id="-flag-13">🚩 <strong>Flag 13: Secrets Store Hallucination</strong></summary>
+<summary id="-section-4-q1">🚩 <strong>Q1: Secrets Store Hallucination</strong></summary>
 
 ### 🎯 Objective
 (Analyst objective) Verify the agent's claimed collection against ground truth.
@@ -728,7 +752,7 @@ Treat recovered attacker-agent logs as leads, not facts. Confirm every claimed s
 ---
 
 <details>
-<summary id="-flag-14">🚩 <strong>Flag 14: Registry Credential Hallucination</strong></summary>
+<summary id="-section-4-q2">🚩 <strong>Q2: Registry Credential Hallucination</strong></summary>
 
 ### 🎯 Objective
 (Analyst objective) Verify the agent's claimed credential discovery.
@@ -771,7 +795,7 @@ A credential the agent never used is unverified by definition. Look for an authe
 ---
 
 <details>
-<summary id="-flag-15">🚩 <strong>Flag 15: Hallucination as Autonomy Limitation</strong></summary>
+<summary id="-section-4-q3">🚩 <strong>Q3: Hallucination as Autonomy Limitation</strong></summary>
 
 ### 🎯 Objective
 (Analyst objective) Explain why the campaign kept a human in the loop.
@@ -812,8 +836,12 @@ The pauses where a human validates results are detectable. Long gaps between mac
 
 ---
 
+### 📂 Section 5: Exfiltration and Persistence
+
+---
+
 <details>
-<summary id="-flag-16">🚩 <strong>Flag 16: Exfil Destination and Staging Path</strong></summary>
+<summary id="-section-5-q1">🚩 <strong>Q1: Exfil Destination and Staging Path</strong></summary>
 
 ### 🎯 Objective
 Move the collected intelligence off the network.
@@ -863,7 +891,7 @@ Alert on file creation in hidden directories under `/tmp` (`/tmp/.*`) on web ser
 ---
 
 <details>
-<summary id="-flag-17">🚩 <strong>Flag 17: Staging Tools</strong></summary>
+<summary id="-section-5-q2">🚩 <strong>Q2: Staging Tools</strong></summary>
 
 ### 🎯 Objective
 Package and encrypt the data before transfer.
@@ -908,7 +936,7 @@ Look for `openssl enc` on servers that don't normally run it, especially when it
 ---
 
 <details>
-<summary id="-flag-18">🚩 <strong>Flag 18: Persistence Mechanism</strong></summary>
+<summary id="-section-5-q3">🚩 <strong>Q3: Persistence Mechanism</strong></summary>
 
 ### 🎯 Objective
 Keep access after the initial shell is lost.
@@ -957,7 +985,7 @@ Alert on `useradd` / `usermod -aG sudo` and on writes to `authorized_keys` or `/
 ---
 
 <details>
-<summary id="-flag-19">🚩 <strong>Flag 19: Exfil vs Legitimate HTTPS</strong></summary>
+<summary id="-section-5-q4">🚩 <strong>Q4: Exfil vs Legitimate HTTPS</strong></summary>
 
 ### 🎯 Objective
 Blend the exfiltration into normal outbound 443 traffic.
@@ -1000,8 +1028,12 @@ Baseline `(InitiatingProcessFileName, RemoteIP)` pairs per server. Alert on firs
 
 ---
 
+### 📂 Section 6: Reconnaissance and Timing
+
+---
+
 <details>
-<summary id="-flag-20">🚩 <strong>Flag 20: Scanner IPs</strong></summary>
+<summary id="-section-6-q1">🚩 <strong>Q1: Scanner IPs</strong></summary>
 
 ### 🎯 Objective
 Map the portal's attack surface before exploitation.
@@ -1046,7 +1078,7 @@ Enrich external sources that hit authenticated API paths without a session with 
 ---
 
 <details>
-<summary id="-flag-21">🚩 <strong>Flag 21: Recon vs Nessus Discrimination</strong></summary>
+<summary id="-section-6-q2">🚩 <strong>Q2: Recon vs Nessus Discrimination</strong></summary>
 
 ### 🎯 Objective
 Hide reconnaissance among scheduled internal scanning.
@@ -1088,7 +1120,7 @@ Allow-list the scanner by source IP and UA. Then investigate any external source
 ---
 
 <details>
-<summary id="-flag-22">🚩 <strong>Flag 22: Timing Signature</strong></summary>
+<summary id="-section-6-q3">🚩 <strong>Q3: Timing Signature</strong></summary>
 
 ### 🎯 Objective
 (Analyst objective) Test the "human espionage operator" hypothesis against the timing.
@@ -1136,8 +1168,12 @@ Compute `prev()` deltas across a cross-table attacker timeline. Clusters of sub-
 
 ---
 
+### 📂 Section 7: Autonomy
+
+---
+
 <details>
-<summary id="-flag-23">🚩 <strong>Flag 23: Operator Decision Gates</strong></summary>
+<summary id="-section-7-q1">🚩 <strong>Q1: Operator Decision Gates</strong></summary>
 
 ### 🎯 Objective
 (Analyst objective) Find where the human made strategic decisions.
@@ -1180,7 +1216,7 @@ Map each gate to the long pauses in host telemetry. Those windows are when a hum
 ---
 
 <details>
-<summary id="-flag-24">🚩 <strong>Flag 24: Autonomy Placement</strong></summary>
+<summary id="-section-7-q2">🚩 <strong>Q2: Autonomy Placement</strong></summary>
 
 ### 🎯 Objective
 (Analyst objective) Place the operation on the human-to-autonomous spectrum.
@@ -1222,7 +1258,7 @@ Always place autonomy using at least two independent sources: one for human inte
 ---
 
 <details>
-<summary id="-flag-25">🚩 <strong>Flag 25: Novel ATT&CK Technique</strong></summary>
+<summary id="-section-7-q3">🚩 <strong>Q3: Novel ATT&CK Technique</strong></summary>
 
 ### 🎯 Objective
 Use AI as the primary execution engine.
@@ -1262,8 +1298,12 @@ Hunt for AI-agent tradecraft: identical command templates, sub-second sequences,
 
 ---
 
+### 📂 Section 8: Real or Noise
+
+---
+
 <details>
-<summary id="-flag-26">🚩 <strong>Flag 26: Credential Reuse Across Services (Real or Noise)</strong></summary>
+<summary id="-section-8-q1">🚩 <strong>Q1: Credential Reuse Across Services (Real or Noise)</strong></summary>
 
 ### 🎯 Objective
 Hide inside a shared service credential.
@@ -1307,7 +1347,7 @@ Require `application_name` in service connection strings and alert on sessions w
 ---
 
 <details>
-<summary id="-flag-27">🚩 <strong>Flag 27: pg_dump Disconfirmation</strong></summary>
+<summary id="-section-8-q2">🚩 <strong>Q2: pg_dump Disconfirmation</strong></summary>
 
 ### 🎯 Objective
 (Analyst objective) Test whether the nightly backup is part of the intrusion.
@@ -1351,7 +1391,7 @@ Before escalating a suspicious event, check whether it appears with the same sha
 ---
 
 <details>
-<summary id="-flag-28">🚩 <strong>Flag 28: Connection Spike Dead End</strong></summary>
+<summary id="-section-8-q3">🚩 <strong>Q3: Connection Spike Dead End</strong></summary>
 
 ### 🎯 Objective
 (Analyst objective) Decide whether the 07:30 DB spike is attacker enumeration.
@@ -1401,7 +1441,7 @@ Enumeration needs successful sessions and queries. A spike made only of FATAL re
 ## 🚨 Detection Gaps & Recommendations
 
 ### Observed Gaps
-- **No command-output capture:** `env` (PID 4411) ran, but nothing recorded what it printed (Flag 8). The portal.conf contents were only recovered from the attacker's own agent log.
+- **No command-output capture:** `env` (PID 4411) ran, but nothing recorded what it printed (Section 2, Q4). The portal.conf contents were only recovered from the attacker's own agent log.
 - **Deny-list URL filtering:** the preview endpoint blocked `file://` but allowed `gopher://`, which gave access to loopback Redis.
 - **Redis running as root and unauthenticated** on the portal host, with `CONFIG` enabled. One request was enough for root code execution.
 - **Plaintext multi-service credentials** in `/etc/semicrest/portal.conf`, reused across DB and admin API.
@@ -1439,7 +1479,7 @@ This was a **high-impact, AI-orchestrated intrusion**. One SSRF flaw, combined w
 - Techniques mapped directly to MITRE ATT&CK
 - Scenario reference: Anthropic threat intelligence, Campaign C0062 (November 2025)
 - **Agent claims vs telemetry:** `rce_confirmed` and `query_database` were accurate. `fuzz_schemes` was partly supported. `adapt_payload` ("Redis SLAVEOF") was inaccurate: the payload was a FLUSHALL/SET crontab write. `harvest_creds` ("three credentials") was overstated. `inspect_registry` and `extract_secrets` were hallucinated.
-- **Verification caveats:** Flags 16–18 (staging path, tools, `svc_monitor`) match the agent log. A `DeviceEvents_CL` account-creation query returned no rows in the tested window, so confirm with broader queries before relying on them. The external scanner cluster in Flag 20 is not fully enumerated.
+- **Verification caveats:** Section 5, Q1–Q3 (staging path, tools, `svc_monitor`) match the agent log. A `DeviceEvents_CL` account-creation query returned no rows in the tested window, so confirm with broader queries before relying on them. The external scanner cluster in Section 6, Q1 is not fully enumerated.
 - Duplicate rows at identical timestamps were de-duplicated during analysis. `LLMAgentLogs_CL` was scoped with `HuntName == "quartzfang"`.
 
 ---
